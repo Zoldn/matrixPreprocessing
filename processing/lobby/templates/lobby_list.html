@@ -1,0 +1,17 @@
+{% extends "base_generic.html" %}
+
+
+{% block title %}
+Lobby List
+{% endblock %}
+
+{% block content %}
+
+    <h1>Lobbies</h1>
+    {% for object in object_list %}
+    <div>
+        {% include "lobby_template.html" %}
+    </div>
+    {% endfor %}
+
+{% endblock %}
