@@ -1,0 +1,48 @@
+{% extends "base_generic.html" %}
+
+
+{% block title %}
+Lobby {{ object.lobbyName }}
+{% endblock %}
+
+{% block content %}
+
+    <h1>Lobby {{ object.lobbyName }}</h1>
+
+    <div>
+        Slots: {{ object.occupiedSlots }}/{{ object.totalSlots }}
+    </div>
+
+    <div>
+        {% if user != object.leader %}
+            <a href="leave/">Leave this lobby</a>
+        {% else %}
+            <a href="update/">Configure options</a>
+            <br>
+            <a href="delete/">Remove this lobby</a>
+        {% endif %}
+    </div>
+    <br>
+    <h2> Members: </h2>
+    <div>
+    {% for member in object.members.all %}
+        <div>
+            {% if member == user %}
+                <i><font color="green">
+            {% endif %}
+            {% if member == object.leader %}
+                <b> {{ member.username }} - Lobby Leader </b>
+            {% else %}
+                {{ member.username }}
+                {% if user == object.leader %}
+                    <a href="kick/{{ member.id }}">Kick</a>
+                {% endif %}
+            {% endif %}
+            {% if member == user %}
+                </font></i>
+            {% endif %}
+        </div>
+    {% endfor%}
+    </div>
+
+{% endblock %}

@@ -19,9 +19,9 @@ from django.contrib.auth import views
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
-    url(r'^accounts/', include('django.contrib.auth.urls')),
-    url(r'^accounts/', include('accounts.urls')),
-    url(r'^lobby/', include('lobby.urls')),
+    url(r'^accounts/', include('django.contrib.auth.urls')), # login, logout
+    url(r'^accounts/', include('accounts.urls')), # profile and register
+    url(r'^lobby/', include('lobby.urls')), # lobby stuff
     # url(r'^profile/', include('accounts.urls'))
     # url(r'^accounts/', include('accounts.urls')),
 ]

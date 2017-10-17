@@ -8,6 +8,19 @@ Lobby List
 {% block content %}
 
     <h1>Lobbies</h1>
+
+    <a href="../create"> Create lobby</a>
+
+    <form action="">
+        {{ form.search.label_tag }}
+        {{ form.search }}
+        {{ form.search.errors }}
+        {{ form.sort_field.label_tag }}
+        {{ form.sort_field }}
+        {{ form.sort_field.errors }}
+        <input type="submit">
+    </form>
+
     {% for object in object_list %}
     <div>
         {% include "lobby_template.html" %}
