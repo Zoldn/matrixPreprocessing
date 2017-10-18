@@ -1,5 +1,6 @@
 {% extends "base_generic.html" %}
 
+{% load paginator_get %}
 
 {% block title %}
 Lobby List
@@ -26,5 +27,21 @@ Lobby List
         {% include "lobby_template.html" %}
     </div>
     {% endfor %}
+
+    <div class="pagination">
+        <span class="step-links">
+            {% if object_list.has_previous %}
+                <a href="?{% url_replace request 'page' object_list.previous_page_number %}">previous</a>
+            {% endif %}
+
+            <span class="current">
+                Page {{ object_list.number }} of {{ object_list.paginator.num_pages }}.
+            </span>
+
+            {% if object_list.has_next %}
+                <a href="?{% url_replace request 'page' object_list.next_page_number %}">next</a>
+            {% endif %}
+        </span>
+    </div>
 
 {% endblock %}

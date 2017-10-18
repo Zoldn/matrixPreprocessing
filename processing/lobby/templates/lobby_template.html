@@ -1,1 +1,4 @@
 <a href="../{{object.id}}/join/">{{ object.lobbyName }}</a> | {{ object.occupiedSlots }}/{{ object.totalSlots }}
+{% if object.password %}
+    | password required
+{% endif %}

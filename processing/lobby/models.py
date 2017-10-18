@@ -12,7 +12,7 @@ class Lobby(models.Model):
 
     lobbyName = models.CharField(max_length=255)
     password = models.CharField(max_length=20, blank=True)
-    isPublic = models.BooleanField()
+    isPublic = models.BooleanField(default=True)
     totalSlots = models.PositiveIntegerField(default=1)
     occupiedSlots = models.PositiveIntegerField(default=1)
     leader = models.ForeignKey(settings.AUTH_USER_MODEL)

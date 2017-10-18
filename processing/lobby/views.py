@@ -14,11 +14,12 @@ from django.http import HttpResponseForbidden, HttpResponseRedirect, HttpRespons
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 # Create your views here.
 
 
-class LobbyShortView(DetailView):  # One-line view of Lobby for list
+class LobbyShortView(DetailView): # One-line view of Lobby for list
 
     model = Lobby
     template_name = 'lobby_detailed.html'
@@ -29,7 +30,7 @@ class LobbyShortView(DetailView):  # One-line view of Lobby for list
             if request.user in lobby.members.all():
                 return super(LobbyShortView, self).dispatch(request, args, kwargs)
             else:
-                return redirect(reverse_lazy('joinLobby', [lobby.id]))
+                return redirect(reverse_lazy('joinLobby', args=[lobby.id]))
         else:
             return HttpResponseNotFound()
 
@@ -41,16 +42,29 @@ class LobbyListView(ListView):
 
     def dispatch(self, request, *args, **kwargs):
         self.form = LobbyListForm(request.GET)
+        self.page = request.GET.get('page')
         self.form.is_valid()
         return super(LobbyListView, self).dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
         queryset = Lobby.objects.all()
+        queryset = queryset.filter(isPublic=True)
         if self.form.cleaned_data.get('search'):
             queryset = queryset.filter(lobbyName__icontains=self.form.cleaned_data['search'])
         if self.form.cleaned_data.get('sort_field'):
             queryset = queryset.order_by(self.form.cleaned_data['sort_field'])
-        return queryset[:10]
+
+        paginator = Paginator(queryset, 10)
+        try:
+            queryset = paginator.page(self.page)
+        except PageNotAnInteger:
+            # If page is not an integer, deliver first page.
+            queryset = paginator.page(1)
+        except EmptyPage:
+            # If page is out of range (e.g. 9999), deliver last page of results.
+            queryset = paginator.page(paginator.num_pages)
+
+        return queryset
 
     def get_context_data(self, **kwargs):
         context = super(LobbyListView, self).get_context_data(**kwargs)
@@ -66,6 +80,8 @@ class CreateLobbyView(LoginRequiredMixin, CreateView):
 
     def form_valid(self, form):
         form.instance.leader = self.request.user
+        if form.instance.totalSlots > 32:
+            form.instance.totalSlots = 32
         ret = super(CreateLobbyView, self).form_valid(form)
         form.instance.members.add(self.request.user)
         return ret
@@ -96,6 +112,8 @@ class LobbyUpdateView(LoginRequiredMixin, UpdateView):
         raise MyForbiddenException
 
     def form_valid(self, form):
+        if form.instance.totalSlots > 32:
+            form.instance.totalSlots = 32
         if form.instance.totalSlots < form.instance.members.count():
             form.instance.totalSlots = form.instance.members.count()
         return super(LobbyUpdateView, self).form_valid(form)
