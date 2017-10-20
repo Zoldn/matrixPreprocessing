@@ -17,6 +17,7 @@ class Lobby(models.Model):
     occupiedSlots = models.PositiveIntegerField(default=1)
     leader = models.ForeignKey(settings.AUTH_USER_MODEL)
     members = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='members')
+    key = models.CharField(max_length=16, unique=True)
 
     def get_absolute_url(self):
         return "/lobby/%i/" % self.id

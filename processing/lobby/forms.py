@@ -29,8 +29,13 @@ class LobbyCreateForm(forms.Form):
 
 class PasswordInputForm(forms.Form):
 
-    password = forms.CharField(max_length=32)
+    password = forms.CharField(max_length=32, widget=forms.PasswordInput())
 
 
 class EmptyForm(forms.Form):
     pass
+
+
+class JoinViaCodeForm(forms.Form):
+
+    code = forms.CharField(max_length=16)

@@ -1,5 +1,6 @@
 {% extends "base_generic.html" %}
 
+{% load paginator_get %}
 
 {% block title %}
 Profile
@@ -7,6 +8,40 @@ Profile
 
 {% block content %}
 
-    Welcome to your profile, {{username}}
+    <h1>{{profile_user.username}} </h1>
+
+    <h2>{{profile_user.username}}'s Lobbies</h2>
+
+    <form action="">
+        {{ form.search.label_tag }}
+        {{ form.search }}
+        {{ form.search.errors }}
+        {{ form.sort_field.label_tag }}
+        {{ form.sort_field }}
+        {{ form.sort_field.errors }}
+        <input type="submit">
+    </form>
+
+    {% for object in object_list %}
+    <div>
+        {% include "lobby_template.html" %}
+    </div>
+    {% endfor %}
+
+    <div class="pagination">
+        <span class="step-links">
+            {% if object_list.has_previous %}
+                <a href="?{% url_replace request 'page' object_list.previous_page_number %}">previous</a>
+            {% endif %}
+
+            <span class="current">
+                Page {{ object_list.number }} of {{ object_list.paginator.num_pages }}.
+            </span>
+
+            {% if object_list.has_next %}
+                <a href="?{% url_replace request 'page' object_list.next_page_number %}">next</a>
+            {% endif %}
+        </span>
+    </div>
 
 {% endblock %}

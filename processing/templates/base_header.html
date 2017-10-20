@@ -1,0 +1,21 @@
+Welcome,
+{% if user.is_authenticated %}
+    {{ user.username }}!
+{% else %}
+    Guest!
+{% endif %}
+{% if user.is_authenticated %}
+(<a href="/accounts/logout/">Logout</a>)
+{% else %}
+(<a href="/accounts/login/">Login</a> |
+<a href="/accounts/register/">Register</a>)
+{% endif %}
+<hr>
+<a href="/">Start page</a> |
+<a href="/lobby/list/">Lobbies</a> |
+{% if user.is_authenticated %}
+<a href="/accounts/profile/{{ user.id }}/">My profile</a> |
+{% else %}
+
+{% endif %}
+<hr>

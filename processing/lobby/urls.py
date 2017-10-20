@@ -10,6 +10,7 @@ urlpatterns = [
     url(r'^(?P<pk>\d+)/join/$', views.JoinLobby.as_view(), name='joinLobby'),
     url(r'^(?P<pk>\d+)/join/password/$', views.PasswordInputJoinLobby.as_view(), name='passwordInput'),
     url(r'failed/noslots/$', views.JoinLobbyFailedNoSlots.as_view(), name='joinFailNoSlots'),
-    url(r'^(?P<pk>\d+)/leave/', views.LeaveLobbyView.as_view(), name='leaveLobby'),
+    url(r'^(?P<pk>\d+)/leave/$', views.LeaveLobbyView.as_view(), name='leaveLobby'),
     url(r'^(?P<pk>\d+)/kick/(?P<kicked>\d+)$', views.KickHimView.as_view(), name='kickFromLobby'),
+    url(r'^join/$', views.JoinViaCodeView.as_view(), name='joinByCode'),
 ]

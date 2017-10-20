@@ -14,12 +14,16 @@ Lobby {{ object.lobbyName }}
     </div>
 
     <div>
-        {% if user != object.leader %}
-            <a href="leave/">Leave this lobby</a>
-        {% else %}
-            <a href="update/">Configure options</a>
-            <br>
-            <a href="delete/">Remove this lobby</a>
+        {% if user.is_authenticated %}
+            {% if user != object.leader %}
+                <a href="leave/">Leave this lobby</a>
+            {% else %}
+                <a href="update/">Configure options</a>
+                <br>
+                <a href="delete/">Remove this lobby</a>
+                <br>
+                Invite code: {{ object.key }}
+            {% endif %}
         {% endif %}
     </div>
     <br>

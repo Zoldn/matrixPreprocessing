@@ -9,12 +9,13 @@ from django.views.generic.base import TemplateView
 from django.views.generic.edit import FormView
 from .models import Lobby
 from django.urls import reverse_lazy
-from .forms import LobbyListForm, LobbyCreateForm, PasswordInputForm, EmptyForm
+from .forms import LobbyListForm, LobbyCreateForm, PasswordInputForm, EmptyForm, JoinViaCodeForm
 from django.http import HttpResponseForbidden, HttpResponseRedirect, HttpResponseNotFound
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.utils.crypto import get_random_string
 
 # Create your views here.
 
@@ -26,13 +27,14 @@ class LobbyShortView(DetailView): # One-line view of Lobby for list
 
     def dispatch(self, request, *args, **kwargs):
         lobby = get_object_or_404(Lobby, pk=kwargs['pk'])
-        if lobby:
-            if request.user in lobby.members.all():
+        if request.user in lobby.members.all():
+            return super(LobbyShortView, self).dispatch(request, args, kwargs)
+        else:
+            if lobby.isPublic:
                 return super(LobbyShortView, self).dispatch(request, args, kwargs)
             else:
-                return redirect(reverse_lazy('joinLobby', args=[lobby.id]))
-        else:
-            return HttpResponseNotFound()
+                return HttpResponseForbidden()
+                # return redirect(reverse_lazy('joinLobby', args=[lobby.id]))
 
 
 class LobbyListView(ListView):
@@ -80,6 +82,7 @@ class CreateLobbyView(LoginRequiredMixin, CreateView):
 
     def form_valid(self, form):
         form.instance.leader = self.request.user
+        form.instance.key = get_random_string(length=16)
         if form.instance.totalSlots > 32:
             form.instance.totalSlots = 32
         ret = super(CreateLobbyView, self).form_valid(form)
@@ -149,16 +152,19 @@ class JoinLobby(LoginRequiredMixin, View):
             lobby.save()
             return HttpResponseRedirect(reverse_lazy('showLobby',args=[lobby.id]))
         else:
-            if lobby.members.count() >= lobby.totalSlots:
-                return HttpResponseRedirect(reverse_lazy('joinFailNoSlots'))
-            else:
-                if lobby.password:
-                    return HttpResponseRedirect(reverse_lazy('passwordInput',args=[lobby.id]))
+            if lobby.isPublic:
+                if lobby.members.count() >= lobby.totalSlots:
+                    return HttpResponseRedirect(reverse_lazy('joinFailNoSlots'))
                 else:
-                    lobby.members.add(request.user)
-                    lobby.occupiedSlots = lobby.members.count()
-                    lobby.save()
-                    return HttpResponseRedirect(reverse_lazy('showLobby',args=[lobby.id]))
+                    if lobby.password:
+                        return HttpResponseRedirect(reverse_lazy('passwordInput',args=[lobby.id]))
+                    else:
+                        lobby.members.add(request.user)
+                        lobby.occupiedSlots = lobby.members.count()
+                        lobby.save()
+                        return HttpResponseRedirect(reverse_lazy('showLobby',args=[lobby.id]))
+            else:
+                return HttpResponseForbidden()
 
 
 class PasswordInputJoinLobby(LoginRequiredMixin, FormView):
@@ -184,9 +190,6 @@ class PasswordInputJoinLobby(LoginRequiredMixin, FormView):
                 return HttpResponseRedirect(reverse_lazy('showLobby', args=[lobby.id]))
         else:
             return HttpResponseRedirect(reverse_lazy('passwordInput', args=[lobby.id]))
-        # return HttpResponse('Wrong password')
-        # return HttpResponseRedirect(reverse_lazy('showLobby',args=[self.lobby_id]))
-        # return super(ContactView, self).form_valid(form)
 
 
 class JoinLobbyFailedNoSlots(TemplateView):
@@ -235,3 +238,32 @@ class KickHimView(LoginRequiredMixin, FormView):
             return HttpResponseRedirect(reverse_lazy('showLobby', args=[lobby.id]))
         else:
             return HttpResponse('OBJECTION! He isnt in the lobby. You cant kick')
+
+
+class JoinViaCodeView(LoginRequiredMixin, FormView):
+
+    template_name = 'lobby_join_via_code.html'
+    form_class = JoinViaCodeForm
+
+    def post(self, request, *args, **kwargs):
+        self.code = request.POST.get('code')
+        return super(JoinViaCodeView, self).post(request, args, kwargs)
+
+    def form_valid(self, form):
+        # lobby = get_object_or_404(Lobby, key=self.code)
+        lobby = Lobby.objects.all().filter(key=self.code)
+        if lobby:
+            if self.request.user in lobby.members.all():
+                lobby.occupiedSlots = lobby.members.count()
+                lobby.save()
+                return HttpResponseRedirect(reverse_lazy('showLobby',args=[lobby.id]))
+            else:
+                if lobby.members.count() >= lobby.totalSlots:
+                    return HttpResponseRedirect(reverse_lazy('joinFailNoSlots'))
+                else:
+                    lobby.members.add(self.request.user)
+                    lobby.occupiedSlots = lobby.members.count()
+                    lobby.save()
+                    return HttpResponseRedirect(reverse_lazy('showLobby',args=[lobby.id]))
+        else:
+            return HttpResponseRedirect(reverse_lazy('joinByCode'))

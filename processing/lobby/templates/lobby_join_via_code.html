@@ -1,0 +1,17 @@
+{% extends "base_generic.html" %}
+
+
+{% block title %}
+Join via code
+{% endblock %}
+
+{% block content %}
+
+    <h1>Input invite code for lobby from lobby leader</h1>
+
+    <form action="" method="post">{% csrf_token %}
+        {{ form.as_p }}
+        <input type="submit" value="Join" />
+    </form>
+
+{% endblock %}
