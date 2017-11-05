@@ -21,10 +21,10 @@ class LobbyListForm(forms.Form):
 
 class LobbyCreateForm(forms.Form):
 
-    lobbyName = forms.CharField(max_length=255)
-    password = forms.CharField(max_length=32, required=False)
-    isPublic = forms.BooleanField(required=False)
-    totalSlots = forms.IntegerField(min_value=1, max_value=8)
+    lobbyName = forms.CharField(label='Game name', max_length=255)
+    password = forms.CharField(label='Password (optional)', max_length=32, required=False)
+    isPublic = forms.BooleanField(label='Public', required=False)
+    totalSlots = forms.IntegerField(label='Player number', min_value=1, max_value=8)
 
 
 class PasswordInputForm(forms.Form):

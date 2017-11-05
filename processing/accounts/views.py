@@ -7,8 +7,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.shortcuts import HttpResponseRedirect
 from django.views.generic import ListView, FormView
-from lobby.models import Lobby
-from lobby.forms import LobbyListForm, EmptyForm
+from games.models import Lobby
+from games.forms import LobbyListForm, EmptyForm
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from forms import LoginForm
 # Create your views here.

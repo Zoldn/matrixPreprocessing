@@ -20,7 +20,7 @@ from django.contrib.auth import views
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^accounts/', include('accounts.urls')),  # profile, login, logout and register
-    url(r'^lobby/', include('lobby.urls')),  # lobby stuff
-    url(r'^game/', include('games.urls')),  # game stuff
+    # url(r'^lobby/', include('lobby.urls')),  # lobby stuff
+    url(r'^games/', include('games.urls')),  # game stuff
     url(r'^', include('core.urls')),
 ]
