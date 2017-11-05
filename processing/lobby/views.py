@@ -20,7 +20,7 @@ from django.utils.crypto import get_random_string
 # Create your views here.
 
 
-class LobbyShortView(DetailView): # One-line view of Lobby for list
+class LobbyShortView(DetailView):  # One-line view of Lobby for list
 
     model = Lobby
     template_name = 'lobby_detailed.html'

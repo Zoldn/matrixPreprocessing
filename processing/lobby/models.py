@@ -20,7 +20,8 @@ class Lobby(models.Model):
     key = models.CharField(max_length=16, unique=True)
 
     def get_absolute_url(self):
-        return "/lobby/%i/" % self.id
+        return reverse('showLobby', args=str(self.id))
+        # return "/lobby/%i/" % self.id
 
     def __str__(self):
         return self.lobbyName
