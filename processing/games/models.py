@@ -9,6 +9,8 @@ from enum import IntEnum
 from django.shortcuts import get_object_or_404
 from django.conf import settings
 from django.db import models
+import sys
+from random import shuffle
 
 
 class PlayerRoles(IntEnum):
@@ -68,7 +70,6 @@ class Lobby(GameComponentModel):
 
     def get_absolute_url(self):
         return reverse('showLobby', args=str(self.id))
-    # return "/lobby/%i/" % self.id
 
     def __str__(self):
         return self.lobbyName
@@ -125,15 +126,17 @@ class GameModule(GameComponentModel):
         return klass.objects.all().filter(**filter_dict)
 
 
-class ModuleComponent(models.Model):
-
-    owner = models.IntegerField(default=-1)
-    module = models.ForeignKey(GameModule, on_delete=models.CASCADE, null=True, default=None)
-    setting = models.CharField(max_length=64)
-    visibility = JSONField()
+class DbBaseModuleComponent(models.Model):
 
     class Meta:
         abstract = True
+
+    module = models.ForeignKey(GameModule, on_delete=models.CASCADE, null=True, default=None)
+    visibility = JSONField()
+    owner = models.IntegerField(default=-1)
+    setting = models.CharField(max_length=128)
+    data = JSONField()
+    gid = models.IntegerField()
 
     def init_visibility(self, player_number):
         self.visibility[u'values'] = [0] * player_number
@@ -143,4 +146,81 @@ class ModuleComponent(models.Model):
 
     def get_visibility(self, player_side):
         return self.visibility[u'values'][player_side]
+
+
+class DbModuleComponent(DbBaseModuleComponent):
+
+    class_name = models.CharField(max_length=128)
+
+    def load(self):
+        klass = getattr(sys.modules[__name__], self.class_name)
+        return klass(self)
+
+
+class ModuleComponent:
+
+    def __init__(self, db_item):
+        self.db_item = db_item
+        self.unpack(db_item.data)
+
+    def pack(self):  # пакует данные объекта в словарь
+        self.db_item.data = self.prepair_data()
+
+    def save(self):
+        self.pack()
+        self.db_item.save()
+
+    def unpack(self, data):  # OVERRIDE, распаковывает данные из JSONField словаря
+        pass
+
+    def prepare_data(self):  # OVERRIDE, возвращает словарь данных объекта для запаковки
+        return {}
+
+    def print_info(self, visibility_level):  # OVERRIDE, выводит инфу по объекту в виде словаря в зависимости от уровня
+        # видимости
+        return {}
+
+
+class DbComponentDeck(DbBaseModuleComponent):
+
+    refill_deck = models.IntegerField(null=True)
+    discard_deck = models.IntegerField(null=True)
+    limit = models.IntegerField(default=None, null=True)
+
+    def load(self):
+        return ModuleComponentDeck(self)
+
+
+class ModuleComponentDeck:
+    def __init__(self, db_item):
+        self.db_item = db_item
+        self.items = []
+        self.refill_deck = None
+        self.discard_deck = None
+        self.limit = None
+        self.name = u'Deck name missing'
+        self.unpack(db_item.data)
+
+    def unpack(self, data):
+        self.items = data[u'items']
+        self.refill_deck = data[u'refill_deck']
+        self.discard_deck = data[u'discard_deck']
+        self.limit = data[u'limit']
+        self.name = data[u'name']
+
+    def prepare_data(self):
+        ret = {u'items': self.items,
+               u'refill_deck': self.refill_deck,
+               u'discard_deck': self.discard_deck,
+               u'limit': self.limit}
+
+    def print_info(self, visibility_level):
+        ret = {}
+        if visibility_level >= 1:
+            ret = {u'id': self.gid,
+                   u'name': self.name,
+                   u'count': len(self.items)}
+
+    def shuffle(self):
+        shuffle(self.items)
 
